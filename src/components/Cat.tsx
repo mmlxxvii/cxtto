@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import { View, Image, StyleSheet, Pressable, Dimensions } from "react-native"
 import { AntDesign } from '@expo/vector-icons'
 import * as MediaLibrary from "expo-media-library"
+
+import { IStorage, addItemLocalStorage, removeItemLocalStorage } from "../local-storage"
 import { cacheImage, deleteCachedImage, getCachedImage } from "../cache"
-import { IStorage, addItem, removeItem } from "../local-storage"
 import { sendToastNotification } from "../notifications"
 import { themes } from "../helpers/constants"
 import { Props } from "../@Types/Props"
@@ -43,15 +44,17 @@ export default function Cat({ url, id }: Props) {
             const imagePath: string = await cacheImage(id)
             const item: IStorage = { id: id, url: imagePath }
 
-            await addItem(item)
+            await addItemLocalStorage(item)
+
+            setFav(true)
 
         } else {
-            await removeItem(id)
+            await removeItemLocalStorage(id)
             await deleteCachedImage(id)
+            
+            setFav(false)
 
         }
-
-        setFav(!isFav)
     }
 
     return (

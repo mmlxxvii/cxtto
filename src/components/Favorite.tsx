@@ -1,32 +1,27 @@
-import { View, Image, Text, StyleSheet, Dimensions, Pressable } from "react-native"
-import { FontAwesome5, AntDesign } from '@expo/vector-icons';
-import { handleDownload } from "./Cat"
+import { View, Image, StyleSheet, Dimensions, Pressable } from "react-native"
+import { FontAwesome5, AntDesign } from '@expo/vector-icons'
+
+import { sendToastNotification } from "../notifications"
+import { removeItemLocalStorage } from "../local-storage"
+import { themes } from "../helpers/constants"
 import { deleteCachedImage } from "../cache"
 import { Props } from "../@types/Props"
-import { themes } from "../helpers/constants";
+import { handleDownload } from "./Cat"
 
 export default function Favorite({ id, url }: Props) {
 
     const handleUnFavorite = async (id: string) => {
 
         await deleteCachedImage(id)
+        await removeItemLocalStorage(id)
+
+        sendToastNotification(`${id} was removed from favorites`)
     }
 
     return (
         <View key={id} style={styles.container}>
             <Image style={styles.image} source={{ uri: url }} />
-            <View style={{
-                justifyContent: "space-between",
-                display: "flex",
-                flexDirection: "row",
-                padding: 20,
-                backgroundColor: themes.colors.SWEETLY,
-                borderColor: themes.colors.PICOPINK,
-                borderWidth: 2,
-                marginBottom: 15,
-                borderRadius: 5,
-                width: Dimensions.get("window").width - 42,
-            }}>
+            <View style={styles.actionBar}>
                 <Pressable
                     onPress={() => handleDownload(id)}
                     android_ripple={{ color: themes.colors.RADICALRED, borderless: true }}
@@ -60,5 +55,18 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         width: Dimensions.get("window").width - 44,
         margin: 2,
+    },
+
+    actionBar: {
+        justifyContent: "space-between",
+        display: "flex",
+        flexDirection: "row",
+        padding: 20,
+        backgroundColor: themes.colors.SWEETLY,
+        borderColor: themes.colors.PICOPINK,
+        borderWidth: 2,
+        marginBottom: 15,
+        borderRadius: 5,
+        width: Dimensions.get("window").width - 42,
     }
 })

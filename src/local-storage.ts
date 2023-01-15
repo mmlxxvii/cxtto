@@ -7,7 +7,7 @@ interface IStorage {
 
 const dirName: string = "@cxttos"
 
-const addItem = async (item: IStorage) => {
+const addItemLocalStorage = async (item: IStorage) => {
     try {
         let items: Array<IStorage | null> = []
         let localStorage = await AsyncStorage.getItem(dirName)
@@ -37,7 +37,7 @@ const addItem = async (item: IStorage) => {
     }
 }
 
-const getAllItems = async (): Promise<any | null> => {
+const getAllItemsLocalStorage = async (): Promise<any | null> => {
     try {
         const items = await AsyncStorage.getItem(dirName)
 
@@ -50,7 +50,7 @@ const getAllItems = async (): Promise<any | null> => {
 
 }
 
-const removeItem = async (id: string) => {
+const removeItemLocalStorage = async (id: string) => {
     try {
         const localStorage = await AsyncStorage.getItem(dirName)
 
@@ -80,9 +80,9 @@ const clearLocalStorage = async () => {
 }
 
 export {
-    addItem,
-    removeItem,
-    getAllItems,
+    addItemLocalStorage,
+    removeItemLocalStorage,
+    getAllItemsLocalStorage,
     clearLocalStorage,
     IStorage
 }

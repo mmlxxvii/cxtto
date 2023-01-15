@@ -1,22 +1,24 @@
-import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
 import { StyleSheet, Text, View, FlatList, Dimensions, StatusBar, Pressable } from 'react-native'
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet"
-import { clearLocalStorage, getAllItems, IStorage } from "./src/local-storage"
-import { themes } from "./src/helpers/constants"
-import { Cats } from './src/@types/Cats'
 
+import { getAllItemsLocalStorage, IStorage } from "./src/local-storage"
+import { themes } from "./src/helpers/constants"
+import { errors } from './src/helpers/errors'
+import { Cats } from './src/@types/Cats'
 import { getCats } from "./src/api"
 
-import Cat from './src/components/Cat'
 import Favorite from './src/components/Favorite'
+import Error from './src/components/Error'
+import Cat from './src/components/Cat'
 
 export default function App() {
   const [isLoaded, setLoaded] = useState(false)
   const [isExpanded, setExpanded] = useState(false)
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const [cats, setCats] = useState<Array<Cats> | null>(null)
+  const [cats, setCats] = useState<Array<Cats> | Array<null>>([])
   const [localStorage, setLocalStorage] = useState<Array<IStorage> | null>(null)
+  const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['8%', "40%", '93%'], []);
 
   const expandBottomSheet = () => {
@@ -26,44 +28,60 @@ export default function App() {
 
   }
 
-  const handleBottomSheetChanges = useCallback((index: number) => {
+  const handleBottomSheetChanges = useCallback(async (index: number) => {
     if (index !== 2) {
       setExpanded(false)
 
     }
 
     if (index === 0) {
-      getAllItems()
-        .then((res) => {
-          console.log(res)
-          setLocalStorage(res)
-        })
-    }
+      const response = await getAllItemsLocalStorage()
 
-  }, [])
+      if (response && response?.length > 0) {
+        setLocalStorage(response)
+        setLoaded(true)
 
-  /* I have no idea what have i done but it works */
-  /* god forgive me for this. i gonna improve. i promise */
-  const getCxttos = () => {
-    getCats().then(res => {
-      if (res !== null) {
-        let temp: Array<Cats | null> = []
-
-        for (let i = 0; i < cats?.length; i++) {
-          temp.push({ id: cats[i]?.id, url: cats[i]?.url })
-
-        }
-
-        temp = [...temp, ...res]
-
-        setCats(temp)
+      } else {
+        setLoaded(false)
+        setLocalStorage(null)
 
       }
-    })
+    }
+  }, [])
+
+  const getCxttos = async () => {
+    const response: Array<Cats> | null = await getCats()
+
+    if (response) {
+      let temp: Array<Cats> = []
+
+      for (let i: number = 0; i < cats?.length; i++) {
+        // @ts-ignore
+        temp.push({ id: cats[i]?.id, url: cats[i]?.url })
+
+      }
+
+      temp = [...temp, ...response]
+
+      setCats(temp)
+
+    }
   }
 
+  useEffect(() => { getCxttos() }, [])
+
   useEffect(() => {
-    getCxttos()
+
+    (async () => {
+      const response = await getAllItemsLocalStorage()
+
+      if (response && response?.length > 0) {
+        setLocalStorage(response)
+        setLoaded(true)
+
+      }
+    })()
+
   }, [])
 
   return (
@@ -75,7 +93,7 @@ export default function App() {
         <View>
           <FlatList
             data={cats}
-            renderItem={({ item, index }) => <Cat url={item.url} id={item.id} />}
+            renderItem={({ item }) => item?.id ? <Cat url={item.url} id={item.id} /> : null}
             showsHorizontalScrollIndicator={false}
             onEndReached={getCxttos}
             onEndReachedThreshold={0.1}
@@ -87,46 +105,49 @@ export default function App() {
       <BottomSheet
         ref={bottomSheetRef}
         index={1}
-        onChange={() => handleBottomSheetChanges}
+        onChange={handleBottomSheetChanges}
         snapPoints={snapPoints}
         backgroundStyle={{ backgroundColor: themes.colors.PRUNUSAVIM }}
         handleIndicatorStyle={{ backgroundColor: themes.colors.PICOPINK }}
-        handleStyle={{
-          backgroundColor: themes.colors.PRUNUSAVIM,
-          borderTopEndRadius: 10,
-          borderTopLeftRadius: 10
-        }}>
+        handleStyle={styles.handleStyle}>
         <Pressable
           onPress={() => expandBottomSheet()}
           android_ripple={{ color: themes.colors.RADICALRED }}
-          style={{ paddingVertical: 10, paddingHorizontal: 30, alignSelf: "center", marginBottom: 10 }}>
-          <Text style={[styles.text, { fontSize: 15, fontWeight: 'bold' }]}>Favorites</Text>
+          style={styles.pressable}>
+          <Text style={[styles.text]}>Favorites</Text>
         </Pressable>
-        {isLoaded &&
+        {isLoaded ?
           <BottomSheetFlatList
-            style={{ marginBottom: 20, borderTopColor: "white", alignSelf: "center" }}
+            style={styles.bottomFlatList}
             data={localStorage}
-            renderItem={({ item, index }) => {
-              if (item?.id) {
-                return <Favorite url={item.url} id={item.id} />
-              }
-
-              return null
-
-            }}
+            renderItem={({ item }) => item.id ? <Favorite url={item.url} id={item.id} /> : null}
           />
-        }
+          : <Error error={errors.emptyList} />}
       </BottomSheet>
       <StatusBar backgroundColor={themes.colors.PRUNUSAVIM} />
     </GestureHandlerRootView>
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     display: "flex",
     backgroundColor: '#000',
+  },
+
+  pressable: {
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    alignSelf: "center",
+    marginBottom: 10
+  },
+
+  bottomFlatList: {
+    marginBottom: 20,
+    borderTopColor: "white",
+    alignSelf: "center"
   },
 
   header: {
@@ -145,6 +166,12 @@ const styles = StyleSheet.create({
 
   text: {
     color: "white"
+  },
+
+  handleStyle: {
+    backgroundColor: themes.colors.PRUNUSAVIM,
+    borderTopEndRadius: 10,
+    borderTopLeftRadius: 10
   },
 
   content: {
@@ -171,31 +198,4 @@ const styles = StyleSheet.create({
     display: 'flex',
     justifyContent: "space-between"
   }
-
 })
-
-
-/**
- * 
- * <FlatList
-          data={cxtt}
-          horizontal
-          onEndReached={getCxttos}
-          onEndReachedThreshold={0.2}
-          pagingEnabled={true}
-          renderItem={({ item, index }) => {
-            return (
-              <View key={index} style={styles.catContainer}>
-                <View style={styles.catContent}>
-                  <Text>{index}</Text>
-                </View>
-                <View style={styles.actionBar}>
-                  <Text>A</Text>
-                  <Text>A</Text>
-                </View>
-              </View>
-            )
-          }}
-          keyExtractor={(item: any) => item.id}
-        />
- */

@@ -35,9 +35,14 @@ const cacheImage = async (id: string): Promise<string> => {
 }
 
 const deleteCachedImage = async (id: string) => {
-    const path = await imagePath(id)
+    try {
+        const path = await imagePath(id)
+        await FileSystem.deleteAsync(path)
 
-    await FileSystem.deleteAsync(path)
+    } catch (err) {
+        console.log(err.message)
+        
+    }
 }
 
 export {
