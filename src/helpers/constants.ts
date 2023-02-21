@@ -1,8 +1,8 @@
 export const themes = {
     colors: {
-        SWEETLY: "#fbe7ef",
+        SWEETLY: "#efebe0",
         PICOPINK: "#fd79a8",
         RADICALRED: "#f62459",
-        PRUNUSAVIM: "#e84393"
+        PRUNUSAVIM: "#F652A0"
     },
 }

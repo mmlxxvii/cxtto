@@ -2,7 +2,7 @@ import { URL } from "../api.config.json"
 import { Cats } from "./@types/Cats"
 
 const getCats = async (): Promise<Array<Cats> | null> => {
-    let finalData: Array<Cats> = []
+    let catsList: Array<Cats> = []
 
     const url = `${URL}/search?limit=10`
     const response = await fetch(url)
@@ -13,14 +13,13 @@ const getCats = async (): Promise<Array<Cats> | null> => {
     }
 
     for (let i: number = 0, l: number = data.length; i < l; i++) {
-        finalData.push({
+        catsList.push({
             id: getId(data[i]?.url),
             url: data[i]?.url
         })
     }
 
-    return finalData
-
+    return catsList
 }
 
 const getId = (url: string): string => {

@@ -2,13 +2,11 @@ import { StyleSheet, Text, View, FlatList, Dimensions, StatusBar, Pressable } fr
 import { useRef, useMemo, useState, useCallback, useEffect } from 'react'
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import BottomSheet, { BottomSheetFlatList } from "@gorhom/bottom-sheet"
-
 import { getAllItemsLocalStorage, IStorage } from "./src/local-storage"
 import { themes } from "./src/helpers/constants"
 import { errors } from './src/helpers/errors'
 import { Cats } from './src/@types/Cats'
 import { getCats } from "./src/api"
-
 import Favorite from './src/components/Favorite'
 import Error from './src/components/Error'
 import Cat from './src/components/Cat'
@@ -23,7 +21,6 @@ export default function App() {
 
   const expandBottomSheet = () => {
     isExpanded ? bottomSheetRef.current?.collapse() : bottomSheetRef.current?.expand()
-
     setExpanded(!isExpanded)
 
   }
@@ -62,26 +59,25 @@ export default function App() {
       }
 
       temp = [...temp, ...response]
-
       setCats(temp)
 
     }
   }
 
-  useEffect(() => { getCxttos() }, [])
+  useEffect(() => {
+    getCxttos()
+  }, [])
 
   useEffect(() => {
-
     (async () => {
       const response = await getAllItemsLocalStorage()
 
       if (response && response?.length > 0) {
         setLocalStorage(response)
         setLoaded(true)
-
       }
-    })()
 
+    })()
   }, [])
 
   return (
@@ -114,7 +110,7 @@ export default function App() {
           onPress={() => expandBottomSheet()}
           android_ripple={{ color: themes.colors.RADICALRED }}
           style={styles.pressable}>
-          <Text style={[styles.text]}>Favorites</Text>
+          <Text style={[styles.text, { fontSize: 16, fontWeight: "bold" }]}>Favorites</Text>
         </Pressable>
         {isLoaded ?
           <BottomSheetFlatList

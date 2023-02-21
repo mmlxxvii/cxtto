@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20
     },
     actionBar: {
+        top: -5,
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
